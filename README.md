@@ -14,19 +14,19 @@ No more transferring funds onto separate chains with separate protocols.
 
 ## Vesting pools
 Vesting pools can be added in the constructor or separately in addVestingPoolFunction.
-Data
+Data for pools:
 
 | Vesting Pool          | Tokens      | %   Listing | Cliff release % | Cliff period (months) | Vesting                                              |
 |-----------------------|-------------|-------------|-----------------|-----------------------|------------------------------------------------------|
-| Angel Round           | 13,000,000  | 0.00%       | 5.00%           | 3                     | Linear (daily) over 36 months                        |
-| Seed                  | 32,500,000  | 0.00%       | 5.00%           | 3                     | Linear (daily) over 24 months                        |
-| Private A             | 26,000,000  | 0.00%       | 5.00%           | 3                     | Linear (daily) over 22 months                        |
-| Private B             | 19,500,000  | 0.00%       | 5.00%           | 2                     | Linear (daily) over 20 months                        |
-| Marketing round       | 19,500,000  | 5.00%       | 0.00%           | 0                     | Linear (daily) over 24 months                        |
-| Community             | 104,000,000 | 0.00%       | 0.00%           | 12                    | Linear (daily) over 48 months                        |
-| Team                  | 110,500,000 | 0.00%       | 0.00%           | 12                    | Linear (daily) over 48 months                        |
-| Advisors              | 39,000,000  | 0.00%       | 0.00%           | 6                     | Linear (daily) over 18 months                        |
-| Staking/Yield farming | 227,500,000 | 0.00%       | 0.00%           | 0                     | 10 years strategic release to support earning reward |
+| Angel Round           | 13,000,000  | 0 %         | 5 %           | 3                     | Linear (daily) over 36 months                        |
+| Seed                  | 32,500,000  | 0 %         | 5 %           | 3                     | Linear (daily) over 24 months                        |
+| Private A             | 26,000,000  | 0 %         | 5 %           | 3                     | Linear (daily) over 22 months                        |
+| Private B             | 19,500,000  | 0 %         | 5 %           | 2                     | Linear (daily) over 20 months                        |
+| Marketing round       | 19,500,000  | 5.00%       | 0 %           | 0                     | Linear (daily) over 24 months                        |
+| Community             | 104,000,000 | 0 %         | 0 %           | 12                    | Linear (daily) over 48 months                        |
+| Team                  | 110,500,000 | 0 %         | 0 %           | 12                    | Linear (daily) over 48 months                        |
+| Advisors              | 39,000,000  | 0 %         | 0 %           | 6                     | Linear (daily) over 18 months                        |
+| Staking/Yield farming | 227,500,000 | 0 %         | 0 %           | 0                     | 10 years strategic release to support earning reward |
 
 # Main vesting contract code
 [Vesting.sol](Vesting.sol)
