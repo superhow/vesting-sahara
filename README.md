@@ -1,16 +1,42 @@
-# Vesting
+# Vesting for Sahara platform
 ![Vesting Schedule](Vesting-diagram.png?raw=true) <br />
 This contract implements token vesting and claiming for the specified list of beneficiaries.
 Vested tokens unlocked: **daily / monthly** after the cliff period ended.
 
-# Main code
+The aim of this project is to distribute [ERC20 SAHARA Tokens](https://polygonscan.com/token/0x8dca2831255e34ca647dba0ed103b5921fa3e975) to the list of beneficiaries.
+Contract can hold multiple pools, however - **the listing date for all pools is the same.**
+
+# Sahara platform
+Tokens will be available for claiming in the [Sahara plaftorm](https://sahara.network/). 
+Sahara is dedicated privacy protocol ecosystem that allows on-platform trade between stable and volatile assets. 
+In short, Sahara will allow users to enjoy the benefits of blockchain trade in true privacy. 
+No more transferring funds onto separate chains with separate protocols.
+
+## Vesting pools
+Vesting pools can be added in the constructor or separately in addVestingPoolFunction.
+Data
+
+| Vesting Pool          | Tokens      | %   Listing | Cliff release % | Cliff period (months) | Vesting                                              |
+|-----------------------|-------------|-------------|-----------------|-----------------------|------------------------------------------------------|
+| Angel Round           | 13,000,000  | 0.00%       | 5.00%           | 3                     | Linear (daily) over 36 months                        |
+| Seed                  | 32,500,000  | 0.00%       | 5.00%           | 3                     | Linear (daily) over 24 months                        |
+| Private A             | 26,000,000  | 0.00%       | 5.00%           | 3                     | Linear (daily) over 22 months                        |
+| Private B             | 19,500,000  | 0.00%       | 5.00%           | 2                     | Linear (daily) over 20 months                        |
+| Marketing round       | 19,500,000  | 5.00%       | 0.00%           | 0                     | Linear (daily) over 24 months                        |
+| Community             | 104,000,000 | 0.00%       | 0.00%           | 12                    | Linear (daily) over 48 months                        |
+| Team                  | 110,500,000 | 0.00%       | 0.00%           | 12                    | Linear (daily) over 48 months                        |
+| Advisors              | 39,000,000  | 0.00%       | 0.00%           | 6                     | Linear (daily) over 18 months                        |
+| Staking/Yield farming | 227,500,000 | 0.00%       | 0.00%           | 0                     | 10 years strategic release to support earning reward |
+
+# Main vesting contract code
 [Vesting.sol](Vesting.sol)
 
 # High level documentation
+Below is Sahara Vesting contract high level documentation with actors, rules and main object parameters.
 [Sahara High Level Documentation.pdf](https://github.com/superhow/vesting/blob/main/Sahara%20High%20Level%20Documentation.pdf)
 
 
-# Roles
+## Roles
 - **Contract owner** can add vesting pools with specified listing, cliff percentage and vesting duration.
 -	**Contract owner** can add beneficiary wallets that are eligible for claiming tokens.
 -	**Contract owner** can change listing date.
@@ -18,7 +44,7 @@ Vested tokens unlocked: **daily / monthly** after the cliff period ended.
 -	**Beneficiary** can claim vested tokens if there are any.
 -	**All users** can check vesting pool data.
 
-# Pool Parameters
+## Pool Parameters
 | Parameter                 | Type               | Explanation                                                                                                                                                                                                         |
 |---------------------------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | name                      | string             | Pool name                                                                                                                                                                                                           |
