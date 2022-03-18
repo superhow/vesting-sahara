@@ -13,7 +13,7 @@ In short, Sahara will allow users to enjoy the benefits of blockchain trade in t
 No more transferring funds onto separate chains with separate protocols.
 
 ## Vesting pools
-Vesting pools can be added in the constructor or separately in addVestingPoolFunction.
+Vesting pools can be added in the constructor or separately in addVestingPoolFunction.<br />
 Data for pools:
 
 | Vesting Pool          | Tokens      | %   Listing | Cliff release % | Cliff period (months) | Vesting                                              |
@@ -22,7 +22,7 @@ Data for pools:
 | Seed                  | 32,500,000  | 0 %         | 5 %           | 3                     | Linear (daily) over 24 months                        |
 | Private A             | 26,000,000  | 0 %         | 5 %           | 3                     | Linear (daily) over 22 months                        |
 | Private B             | 19,500,000  | 0 %         | 5 %           | 2                     | Linear (daily) over 20 months                        |
-| Marketing round       | 19,500,000  | 5.00%       | 0 %           | 0                     | Linear (daily) over 24 months                        |
+| Marketing round       | 19,500,000  | 5 %         | 0 %           | 0                     | Linear (daily) over 24 months                        |
 | Community             | 104,000,000 | 0 %         | 0 %           | 12                    | Linear (daily) over 48 months                        |
 | Team                  | 110,500,000 | 0 %         | 0 %           | 12                    | Linear (daily) over 48 months                        |
 | Advisors              | 39,000,000  | 0 %         | 0 %           | 6                     | Linear (daily) over 18 months                        |
@@ -75,4 +75,4 @@ Beneficiaries can claim tokens from the selected pools
 - **If vesting period ended** : transfer all allocated and unclaimed tokens.
 
 ## Deployment logic
-•	We deploy a separate Vesting.sol and a TransparentUpgradeableProxy.sol contract (latter is OpenZeppelin standard and is uploaded using **truffle-upgrade plugin** (code is not stored in the repository as we use the standard library).
+•	We deploy a separate **Vesting.sol** and a TransparentUpgradeableProxy.sol contract (latter is OpenZeppelin standard and is uploaded using [truffle-upgrades plugin](https://www.npmjs.com/package/@openzeppelin/truffle-upgrades) (code is not stored in the repository as we use the standard library).
