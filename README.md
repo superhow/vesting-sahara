@@ -3,18 +3,22 @@
 This contract implements token vesting and claiming for the specified list of beneficiaries.
 Vested tokens unlocked: **daily / monthly** after the cliff period ended.
 
-#Main code
-![Vesting.sol](Vesting.sol)
+# Main code
+[Vesting.sol](Vesting.sol)
 
-## Roles
-- Contract owner can add vesting pools with specified listing, cliff percentage and vesting duration.
--	Contract owner can add beneficiary wallets that are eligible for claiming tokens.
--	Contract owner can change listing date.
--	Contract owner can remove beneficiary.
--	Beneficiary can claim vested tokens if there are any.
--	All users can check vesting pool data.
+# High level documentation
+[Sahara High Level Documentation.pdf](https://github.com/superhow/vesting/blob/main/Sahara%20High%20Level%20Documentation.pdf)
 
-## Pool Parameters
+
+# Roles
+- **Contract owner** can add vesting pools with specified listing, cliff percentage and vesting duration.
+-	**Contract owner** can add beneficiary wallets that are eligible for claiming tokens.
+-	**Contract owner** can change listing date.
+-	**Contract owner** can remove beneficiary.
+-	**Beneficiary** can claim vested tokens if there are any.
+-	**All users** can check vesting pool data.
+
+# Pool Parameters
 | Parameter                 | Type               | Explanation                                                                                                                                                                                                         |
 |---------------------------|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | name                      | string             | Pool name                                                                                                                                                                                                           |
@@ -26,7 +30,6 @@ Vested tokens unlocked: **daily / monthly** after the cliff period ended.
 | vestingDurationInMonths   | uint256            | Duration of vesting period when tokens are linearly unlocked. (Refer to the graph in Vesting contract )                                                                                                             |
 | unlockType                | UnlockTypes (enum) | 0 for DAILY; 1 for MONTHLY;                                                                                                                                                                                         |
 | poolTokenAmount           | uint256            | Total amount of tokens available for claiming from pool. absolute token amount! If pool has 5 000 000 tokens, contract will accept “5000000000000000000000000” ← value as a paremeter which is ( 5 000 000 * 1018 ) |
-You can now import Markdown table code directly using File/Paste table data... dialog.
 
 ## Beneficiary Parameters
 
@@ -38,9 +41,11 @@ You can now import Markdown table code directly using File/Paste table data... d
 
 Token amount for beneficiary is recalculated this way: **Total amount = Listing amount + Cliff amount + Vesting amount**
 
-###Claiming tokens
+### Claiming tokens
+Beneficiaries can claim tokens from the selected pools
 - **If listing has started** : listing token amount;
-- **If cliff has ended** : listing token amount + cliff token amount + vested unlocked tokens:
+- **If cliff has ended** : listing token amount + cliff token amount + vested unlocked tokens: 
+ ![Claiming](unlockedTokens.png?raw=true) <br />
 - **If vesting period ended** : transfer all allocated and unclaimed tokens.
 
 ## Deployment logic
