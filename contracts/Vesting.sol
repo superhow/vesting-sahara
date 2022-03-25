@@ -3,15 +3,17 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+/**
+* @title Sahara Vesting Smart Contract
+* @author SUPER HOW?
+* @notice Vesting initializable contract for beneficiary management and unlocked token claiming.
+*/
 contract Vesting is Initializable {
     IERC20 private token;
     address private contractOwner;
 
-    uint256 private constant NOT_ENTERED = 1;
-    uint256 private constant ENTERED = 2;
-
-    uint256 private poolCount;
-    uint256 private listingDate;
+    uint private poolCount;
+    uint private listingDate;
 
     event Claim(address indexed _from, uint _poolIndex, uint _tokenAmount);
 
@@ -22,41 +24,44 @@ contract Vesting is Initializable {
 
     struct Beneficiary {
         bool isWhitelisted;
-        uint256 totalTokens;
+        uint totalTokens;
 
-        uint256 listingTokenAmount;
-        uint256 cliffTokenAmount;
-        uint256 vestedTokenAmount;
+        uint listingTokenAmount;
+        uint cliffTokenAmount;
+        uint vestedTokenAmount;
 
-        uint256 claimedTotalTokenAmount;
+        uint claimedTotalTokenAmount;
     }
 
     struct Pool {
         string name;
 
-        uint256 listingPercentageDividend;
-        uint256 listingPercentageDivisor;
+        uint listingPercentageDividend;
+        uint listingPercentageDivisor;
 
-        uint256 cliffInDays;
-        uint256 cliffEndDate;
-        uint256 cliffPercentageDividend;
-        uint256 cliffPercentageDivisor;
+        uint cliffInDays;
+        uint cliffEndDate;
+        uint cliffPercentageDividend;
+        uint cliffPercentageDivisor;
 
-        uint256 vestingDurationInMonths;
-        uint256 vestingDurationInDays;
-        uint256 vestingEndDate;
+        uint vestingDurationInMonths;
+        uint vestingDurationInDays;
+        uint vestingEndDate;
 
         mapping(address => Beneficiary) beneficiaries;
 
         UnlockTypes unlockType;
-        uint256 totalPoolTokenAmount;
-        uint256 lockedPoolTokens;
+        uint totalPoolTokenAmount;
+        uint lockedPoolTokens;
     }
 
-    mapping(uint256 => Pool) private vestingPools;
-    mapping(address => uint256) private userReentrancy;
+    mapping(uint => Pool) private vestingPools;
+    mapping(address => uint) private userReentrancy;
 
-    function initialize(IERC20 _token, uint256 _listingDate) 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+
+    function initialize(IERC20 _token, uint _listingDate) 
         public
         initializer
         validListingDate(_listingDate)
@@ -68,13 +73,13 @@ contract Vesting is Initializable {
 
         /* name, listing percentage, cliff period, cliff percentage, vesting months, unlock type, total token amount */
         addVestingPool('Angel Round', 0, 1, 90, 1, 20, 36, UnlockTypes.DAILY, 13000000 * 10 ** 18);
-        addVestingPool('Seed', 0, 1, 90, 1, 20, 24, UnlockTypes.DAILY, 32500000 * 10 ** 18);
-        addVestingPool('Private A', 0, 1, 90, 1, 20, 22, UnlockTypes.DAILY, 26000000 * 10 ** 18);
+        addVestingPool('Seed',  0, 1, 90, 1, 20, 24, UnlockTypes.DAILY, 32500000 * 10 ** 18);
+        addVestingPool('Private A',  0, 1, 90, 1, 20, 22, UnlockTypes.DAILY, 26000000 * 10 ** 18);
         addVestingPool('Private B', 0, 1, 60, 1, 20, 20, UnlockTypes.DAILY, 19500000 * 10 ** 18);
         addVestingPool('Marketing Round', 1, 20, 0, 0, 1, 20, UnlockTypes.DAILY, 19500000 * 10 ** 18);
         addVestingPool('Community', 0, 1, 360, 0, 1, 48, UnlockTypes.DAILY, 104000000 * 10 ** 18);
         addVestingPool('Team', 0, 1, 360, 0, 1, 48, UnlockTypes.DAILY, 110000000 * 10 ** 18);
-        addVestingPool('Advisors', 0, 1, 180, 0, 1, 18, UnlockTypes.DAILY, 39500000 * 10 ** 18);
+        addVestingPool('Advisors',  0, 1, 180, 0, 1, 18, UnlockTypes.DAILY, 39500000 * 10 ** 18);
         addVestingPool('Staking/Yield farming', 0, 1, 0, 0, 1, 120, UnlockTypes.DAILY, 227500000 * 10 ** 18);
         
     }
@@ -93,7 +98,7 @@ contract Vesting is Initializable {
     /**
     * @notice Checks whether the listing date is not in the past.
     */
-    modifier validListingDate(uint256 _listingDate) {
+    modifier validListingDate(uint _listingDate) {
         require(
             _listingDate >= block.timestamp,
             "Listing date can be only set in the future."
@@ -114,7 +119,7 @@ contract Vesting is Initializable {
     /**
     * @notice Checks whether the editable vesting pool exists.
     */
-    modifier poolExists(uint256 _poolIndex) {
+    modifier poolExists(uint _poolIndex) {
         require(
            vestingPools[_poolIndex].cliffPercentageDivisor > 0,
             "Pool does not exist."
@@ -127,7 +132,7 @@ contract Vesting is Initializable {
     */
     modifier nameDoesNotExist(string memory _name) {
         bool exists = false;
-        for(uint256 i = 0; i < poolCount; i++){
+        for(uint i = 0; i < poolCount; i++){
             if(keccak256(abi.encodePacked(vestingPools[i].name)) == keccak256(abi.encodePacked(_name))){
                 exists = true;
                 break;
@@ -142,7 +147,7 @@ contract Vesting is Initializable {
     /**
     * @notice Checks whether token amount > 0.
     */
-    modifier tokenNotZero(uint256 _tokenAmount) {
+    modifier tokenNotZero(uint _tokenAmount) {
         require(
             _tokenAmount > 0,
             "Token amount can not be 0."
@@ -153,7 +158,7 @@ contract Vesting is Initializable {
     /**
     * @notice Checks whether the address is beneficiary of the pool.
     */
-    modifier onlyWhitelisted(uint256 _poolIndex) {
+    modifier onlyWhitelisted(uint _poolIndex) {
         require(
             vestingPools[_poolIndex].beneficiaries[msg.sender].isWhitelisted,
             "Address is not in the whitelist."
@@ -162,36 +167,13 @@ contract Vesting is Initializable {
     }
 
     /**
-    * @notice Reentrancy check.
-    */
-    modifier nonReentrant() {
-        require(
-            userReentrancy[msg.sender] != ENTERED,
-            "ReentrancyGuard: reentrant call."
-            );
-        userReentrancy[msg.sender] = ENTERED;
-        _;
-        userReentrancy[msg.sender] = NOT_ENTERED;
-    }
-
-    /**
     * @notice Transfer ownership of the contract with all privileges to new owner.
     */
     function transferOwnership(address newOwner)
-        public
-        onlyOwner 
-    {
-        contractOwner = newOwner;
-    }
-
-    /**
-    * @notice Reset reentrancy for the specific address in case the value is stuck but not valid.
-    */
-    function resetReentrancy(address _address)
-        public
+        external
         onlyOwner
     {
-        userReentrancy[_address] = NOT_ENTERED;
+        contractOwner = newOwner;
     }
 
     /**
@@ -206,14 +188,14 @@ contract Vesting is Initializable {
     */
     function addVestingPool (
         string memory _name,
-        uint256 _listingPercentageDividend,
-        uint256 _listingPercentageDivisor,
-        uint256 _cliffInDays,
-        uint256 _cliffPercentageDividend,
-        uint256 _cliffPercentageDivisor,
-        uint256 _vestingDurationInMonths,
+        uint _listingPercentageDividend,
+        uint _listingPercentageDivisor,
+        uint _cliffInDays,
+        uint _cliffPercentageDividend,
+        uint _cliffPercentageDivisor,
+        uint _vestingDurationInMonths,
         UnlockTypes _unlockType,
-        uint256 _totalPoolTokenAmount)
+        uint _totalPoolTokenAmount)
         public
         onlyOwner
         nameDoesNotExist(_name)
@@ -260,9 +242,9 @@ contract Vesting is Initializable {
     * @param _tokenAmount Purchased token absolute amount (with included decimals).
     */
     function addToBeneficiariesList(
-        uint256 _poolIndex,
+        uint _poolIndex,
         address _address,
-        uint256 _tokenAmount)
+        uint _tokenAmount)
         public
         onlyOwner
         addressNotZero(_address)
@@ -298,10 +280,10 @@ contract Vesting is Initializable {
     * @dev Example of parameters: ["address1","address2"], ["address1Amount", "address2Amount"].
     */
     function addToBeneficiariesListMultiple(
-        uint256 _poolIndex,
+        uint _poolIndex,
         address[] calldata _addresses,
-        uint256[] calldata _tokenAmount)
-        public
+        uint[] calldata _tokenAmount)
+        external
         onlyOwner
     {
         require(
@@ -309,7 +291,7 @@ contract Vesting is Initializable {
             "Addresses and token amount arrays must be the same size."
             );
 
-        for (uint256 i = 0; i < _addresses.length; i++) {
+        for (uint i = 0; i < _addresses.length; i++) {
            addToBeneficiariesList(_poolIndex, _addresses[i], _tokenAmount[i]);
         }
     }
@@ -319,8 +301,8 @@ contract Vesting is Initializable {
     * @param _poolIndex Index that refers to vesting pool object.
     * @param _address Address of the beneficiary wallet.
     */
-    function removeBeneficiary(uint256 _poolIndex, address _address)
-        public
+    function removeBeneficiary(uint _poolIndex, address _address)
+        external
         onlyOwner
         poolExists(_poolIndex)
     {
@@ -334,13 +316,13 @@ contract Vesting is Initializable {
     * @notice Sets new listing date and recalculates cliff and vesting end dates for all pools.
     * @param _listingDate new listing date.
     */
-    function changeListingDate(uint256 _listingDate)
-        public
+    function changeListingDate(uint _listingDate)
+        external
         onlyOwner
         validListingDate(_listingDate)
     {
         listingDate = _listingDate;
-        for(uint256 i; i < poolCount; i++){
+        for(uint i; i < poolCount; i++){
             Pool storage p = vestingPools[i];
             p.cliffEndDate = _listingDate + (p.cliffInDays * 1 days);
             p.vestingEndDate = p.cliffEndDate + (p.vestingDurationInDays * 1 days);
@@ -352,14 +334,13 @@ contract Vesting is Initializable {
     * @param _poolIndex Index that refers to vesting pool object.
     * if the vesting period has ended - beneficiary is transferred all unclaimed tokens.
     */
-    function claimTokens(uint256 _poolIndex)
-        public
+    function claimTokens(uint _poolIndex)
+        external
         poolExists(_poolIndex)
         addressNotZero(msg.sender)
         onlyWhitelisted(_poolIndex)
-        nonReentrant
     {
-        uint256 unlockedTokens = unlockedTokenAmount(_poolIndex, msg.sender);
+        uint unlockedTokens = unlockedTokenAmount(_poolIndex, msg.sender);
         require(
             unlockedTokens > 0, 
             "There are no claimable tokens."
@@ -379,16 +360,16 @@ contract Vesting is Initializable {
     * @notice Calculates unlocked and unclaimed tokens based on the days passed.
     * @param _address Address of the beneficiary wallet.
     * @param _poolIndex Index that refers to vesting pool object.
-    * @return uint256 total unlocked and unclaimed tokens.
+    * @return uint total unlocked and unclaimed tokens.
     */
-    function unlockedTokenAmount(uint256 _poolIndex, address _address)
+    function unlockedTokenAmount(uint _poolIndex, address _address)
         public
         view
-        returns (uint256)
+        returns (uint)
     {
         Pool storage p = vestingPools[_poolIndex];
         Beneficiary storage b = p.beneficiaries[_address];
-        uint256 unlockedTokens = 0;
+        uint unlockedTokens = 0;
 
         if (block.timestamp < listingDate) { // Listing has not begun yet. Return 0.
             return unlockedTokens;
@@ -397,7 +378,7 @@ contract Vesting is Initializable {
         } else if (block.timestamp >= p.vestingEndDate) { // Vesting period has ended. Unlocked all tokens.
             unlockedTokens = b.totalTokens;
         } else { // Cliff period has ended. Calculate vested tokens.
-            (uint256 duration, uint256 periodsPassed) = vestingPeriodsPassed(_poolIndex);
+            (uint duration, uint periodsPassed) = vestingPeriodsPassed(_poolIndex);
             unlockedTokens = b.listingTokenAmount + b.cliffTokenAmount + 
                             (b.vestedTokenAmount * periodsPassed / duration);
         }
@@ -410,10 +391,10 @@ contract Vesting is Initializable {
     * @return If unlock type is daily: vesting duration in days, else: in months.
     * @return If unlock type is daily: number of days passed, else: number of months passed.
     */
-    function vestingPeriodsPassed(uint256 _poolIndex)
+    function vestingPeriodsPassed(uint _poolIndex)
         public
         view
-        returns (uint256, uint256)
+        returns (uint, uint)
     {
         Pool storage p = vestingPools[_poolIndex];
         // Cliff not ended yet
@@ -435,10 +416,10 @@ contract Vesting is Initializable {
     * @param dividend The number from which total amount will be multiplied.
     * @param divisor The number from which total amount will be divided.
     */
-    function getTokensByPercentage(uint256 totalAmount, uint256 dividend, uint256 divisor) 
-        public
+    function getTokensByPercentage(uint totalAmount, uint dividend, uint divisor) 
+        internal
         pure
-        returns (uint256)
+        returns (uint)
     {
         return totalAmount * dividend / divisor;
     }
@@ -447,10 +428,10 @@ contract Vesting is Initializable {
     * @notice Checks how many tokens unlocked in a pool (not allocated to any user).
     * @param _poolIndex Index that refers to vesting pool object.
     */
-    function totalUnclaimedPoolTokens(uint256 _poolIndex) 
-        public
+    function totalUnclaimedPoolTokens(uint _poolIndex) 
+        external
         view
-        returns (uint256)
+        returns (uint)
     {
         Pool storage p = vestingPools[_poolIndex];
         return p.totalPoolTokenAmount - p.lockedPoolTokens;
@@ -462,16 +443,16 @@ contract Vesting is Initializable {
     * @param _address Address of the beneficiary wallet.
     * @return Beneficiary structure information.
     */
-    function beneficiaryInformation(uint256 _poolIndex, address _address)
+    function beneficiaryInformation(uint _poolIndex, address _address)
         external
         view
         returns (
             bool, 
-            uint256, 
-            uint256, 
-            uint256,
-            uint256, 
-            uint256
+            uint, 
+            uint, 
+            uint,
+            uint, 
+            uint
         )
     {
         Beneficiary storage b = vestingPools[_poolIndex].beneficiaries[_address];
@@ -487,24 +468,24 @@ contract Vesting is Initializable {
 
     /**
     * @notice Return global listing date value (in epoch timestamp format).
-    * @return uint256 listing date.
+    * @return uint listing date.
     */ 
     function getListingDate() 
-        public
+        external
         view
-        returns (uint256)
+        returns (uint)
     {
         return listingDate;
     }
 
     /**
     * @notice Return number of pools in contract.
-    * @return uint256 pool count.
+    * @return uint pool count.
     */ 
     function getPoolCount() 
-        public
+        external
         view
-        returns (uint256)
+        returns (uint)
     {
         return poolCount;
     }
@@ -514,7 +495,7 @@ contract Vesting is Initializable {
     * @return IERC20 token.
     */ 
     function getToken() 
-        public
+        external
         view
         returns (IERC20)
     {
@@ -526,15 +507,15 @@ contract Vesting is Initializable {
     * @param _poolIndex Index that refers to vesting pool object.
     * @return Part of the vesting pool information.
     */
-    function poolDates(uint256 _poolIndex)
-        public
+    function poolDates(uint _poolIndex)
+        external
         view
         returns (
-            uint256, 
-            uint256, 
-            uint256, 
-            uint256,
-            uint256
+            uint, 
+            uint, 
+            uint, 
+            uint,
+            uint
         )
     {
         Pool storage p = vestingPools[_poolIndex];
@@ -552,17 +533,17 @@ contract Vesting is Initializable {
     * @param _poolIndex Index that refers to vesting pool object.
     * @return Part of the vesting pool information.
     */
-    function poolData(uint256 _poolIndex)
-        public
+    function poolData(uint _poolIndex)
+        external
         view
         returns (
             string memory,
-            uint256,
-            uint256, 
-            uint256,
-            uint256,
+            uint,
+            uint, 
+            uint,
+            uint,
             UnlockTypes,
-            uint256
+            uint
         )
     {
         Pool storage p = vestingPools[_poolIndex];
