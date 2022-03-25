@@ -57,6 +57,9 @@ contract Vesting is Initializable {
 
     mapping(uint => Pool) private vestingPools;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() initializer {}
+    
     function initialize(IERC20 _token, uint _listingDate) 
         public
         initializer
