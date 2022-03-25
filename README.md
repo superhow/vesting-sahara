@@ -29,7 +29,7 @@ Data for pools:
 | Staking/Yield farming | 227,500,000 | 0 %         | 0 %           | 0                     | 10 years strategic release to support earning reward |
 
 # Main vesting contract code
-[Vesting.sol](Vesting.sol)
+[Vesting.sol](contracts/Vesting.sol)
 
 # High level documentation
 Below is Sahara Vesting contract high level documentation with actors, rules and main object parameters.
