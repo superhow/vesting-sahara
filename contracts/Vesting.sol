@@ -56,7 +56,6 @@ contract Vesting is Initializable {
     }
 
     mapping(uint => Pool) private vestingPools;
-    mapping(address => uint) private userReentrancy;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
@@ -526,6 +525,18 @@ contract Vesting is Initializable {
             p.vestingDurationInMonths,
             p.vestingEndDate
         );
+    }
+
+    /**
+    * @notice Return wallet address that can perform onlyOwner functions.
+    * @return address of the contract owner.
+    */ 
+    function getContractOwner() 
+        external
+        view
+        returns (address)
+    {
+        return contractOwner;
     }
 
     /**
