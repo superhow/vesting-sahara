@@ -1,4 +1,4 @@
-const TestToken = artifacts.require("TestToken");
+const MockToken = artifacts.require("MockToken");
 const VestingMain = artifacts.require("VestingMock");
 
 const Chance = require("chance");
@@ -15,7 +15,7 @@ contract("VestingMain", async (accounts) => {
   async function createFixtures() {
     const chance = new Chance();
     const owner = chance.pickone(accounts);
-    const token = await TestToken.new({ from: owner });
+    const token = await MockToken.new({ from: owner });
     const vestingMain = await VestingMain.new();
     await vestingMain.initialize(token.address, 1000000, { from: owner });
     return [chance, owner, vestingMain, token];
