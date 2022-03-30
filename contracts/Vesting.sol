@@ -75,7 +75,7 @@ contract Vesting is Initializable {
         addVestingPool('Seed',  0, 1, 90, 1, 20, 24, UnlockTypes.DAILY, 32500000 * 10 ** 18);
         addVestingPool('Private A',  0, 1, 90, 1, 20, 22, UnlockTypes.DAILY, 26000000 * 10 ** 18);
         addVestingPool('Private B', 0, 1, 60, 1, 20, 20, UnlockTypes.DAILY, 19500000 * 10 ** 18);
-        addVestingPool('Marketing Round', 1, 20, 0, 0, 1, 20, UnlockTypes.DAILY, 19500000 * 10 ** 18);
+        addVestingPool('Marketing Round', 1, 20, 0, 0, 1, 24, UnlockTypes.DAILY, 19500000 * 10 ** 18);
         addVestingPool('Community', 0, 1, 360, 0, 1, 48, UnlockTypes.DAILY, 104000000 * 10 ** 18);
         addVestingPool('Team', 0, 1, 360, 0, 1, 48, UnlockTypes.DAILY, 110000000 * 10 ** 18);
         addVestingPool('Advisors',  0, 1, 180, 0, 1, 18, UnlockTypes.DAILY, 39500000 * 10 ** 18);
