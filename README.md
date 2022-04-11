@@ -31,6 +31,76 @@ Data for pools:
 # Main vesting contract code
 [Vesting.sol](contracts/Vesting.sol)
 
+# Deployment
+## Prerequisites:
+- node  (version > 14)
+- Ubuntu or Windows (via git bash)
+- ledger (for mainnet deployment)
+- MATIC (for mainnet deployment)
+
+Edit env file (listing date and token addresses (if not deployed in 'development' server:
+```bash
+# ****SCAN API KEYS FOR VERIFICATION
+# Obtain key in polygonscan. One key works for test and main nets.
+POLYGON_SCAN_API_KEY_VERIFICATION=
+
+# Polygon Testnet (Mumbai) wallet private key and RPC URL
+MUMBAI_PRIVATE_KEY=
+MUMBAI_RPC_URL=https://rpc-mumbai.maticvigil.com/v1/...
+MUMBAI_ERC_20_TOKEN=
+MUMBAI_VESTING_LISTING_DATE=1649589285
+
+# Polygon (Matic) wallet private key and RPC URL
+MATIC_PRIVATE_KEY=
+MATIC_RPC_URL=https://rpc-mainnet.maticvigil.com/v1/...
+MATIC_ERC_20_TOKEN=
+MATIC_VESTING_LISTING_DATE=1649589285
+
+```
+
+### 1: Install dependencies
+```bash
+npm i
+```
+### 2. Test
+Start local blockchain (development server)
+```bash
+npx ganache-cli
+```
+For deployment in development:
+```bash
+npm run test
+```
+or
+
+```bash
+rm-rf build
+npx truffle test
+```
+
+### 3. Deploy implementation + proxy admin + proxy
+- For deployment in development:
+Start local blockchain (development server)
+```bash
+npx ganache-cli
+```
+then: 
+
+```bash
+npm run migrate:development
+```
+
+- If using truffle dashboard:
+```bash
+npx truffle dashboard
+```
+then:
+
+```bash
+npm run migrate:dashboard
+```
+
+
 # High level documentation
 Below is Sahara Vesting contract high level documentation with actors, rules and main object parameters.
 [Sahara High Level Documentation.pdf](https://github.com/superhow/vesting/blob/main/Sahara%20High%20Level%20Documentation.pdf)
@@ -78,42 +148,59 @@ Beneficiaries can claim tokens from the selected pools
 •	We deploy a separate **Vesting.sol** and a TransparentUpgradeableProxy.sol contract (latter is OpenZeppelin standard and is uploaded using [truffle-upgrades plugin](https://www.npmjs.com/package/@openzeppelin/truffle-upgrades) (code is not stored in the repository as we use the standard library).
 
 ## Tests
-| Function                                   | Case                                                                                                                         | Test type | Result                                                | Status |
-|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|-----------|-------------------------------------------------------|--------|
-| 1.1. addVestingPool                        | Should be able to add a pool.                                                                                                | Auto      | The pool is added correctly.                          | ✅      |
-| 1.2. addVestingPool                        | Should not be able to add a pool from non-owner account.                                                                     | Auto      | Reverts with a custom message.                        | ✅      |
-| 1.3. addVestingPool                        | Should not be able to add a pool when _listingPercentageDivisor==0.                                                          | Auto      | Reverts with a custom message.                        | ✅      |
-| 1.4. addVestingPool                        | Should not be able to add a pool when _cliffPercentageDivisor==0.                                                            | Auto      | Reverts with a custom message.                        | ✅      |
-| 1.5. addVestingPool                        | Should not be able to add a pool when _cliffPercentageDivisor==0 and _listingPercentageDivisor==0.                           | Auto      | Reverts with a custom message.                        | ✅      |
-| 1.6. addVestingPool                        | Should not be able to add a pool when pool cliff Percentage + pool listing Percentage > 100.                                 | Auto      | Reverts with a custom message.                        | ✅      |
-| 2.1. addToBeneficiariesList                | Should be able to add a beneficiary to a pool.                                                                               | Auto      | The beneficiary is added correctly.                   | ✅      |
-| 2.2. addToBeneficiariesList                | Should not be able to add a beneficiary from a non-owner account.                                                            | Auto      | Reverts with a custom message.                        | ✅      |
-| 2.3. addToBeneficiariesList                | Should not be able to add a beneficiary when _tokenAmount == 0.                                                              | Auto      | Reverts with a custom message.                        | ✅      |
-| 2.4. addToBeneficiariesList                | Should not be able to add a beneficiary to a non-existing pool.                                                              | Auto      | Reverts with a custom message.                        | ✅      |
-| 2.5. addToBeneficiariesList                | Should not be able to add a beneficiary to a pool when _tokenAmount exceeds pool.totalPoolTokenAmount-pool.lockedPoolTokens  | Auto      | Reverts with a custom message.                        | ✅      |
-| 2.6. addToBeneficiariesList                | Should be able to add a beneficiary to a pool twice.                                                                         | Auto      | The beneficiary is added correctly.                   | ✅      |
-| 3.1. addToBeneficiariesListMultiple        | Should not be able to add beneficiaries to a pool from a non-owner account.                                                  | Auto      | Reverts with a custom message.                        | ✅      |
-| 3.2. addToBeneficiariesListMultiple        | Should not be able to add beneficiaries to a pool when _tokenAmount and _addresses are of different lengths.                 | Auto      | Reverts with a custom message.                        | ✅      |
-| 3.3. addToBeneficiariesListMultiple        | Should not be able to add multiple beneficiaries to a pool when there is not enough tokens in it.                            | Auto      | Reverts with a custom message.                        | ✅      |
-| 4.1. claimTokens                           | Should not be able to claim tokens before listing.                                                                           | Auto      | Reverts with a custom message.                        | ✅      |
-| 4.2. claimTokens                           | A Beneficiary should not be able to claim tokens from a pool if he is not in it.                                             | Auto      | Reverts with a custom message.                        | ✅      |
-| 4.3. claimTokens                           | Should not be able to claim listing tokens twice.                                                                            | Auto      | Reverts with a custom message.                        | ✅      |
-| 4.4. claimTokens                           | Should be able to claim listing tokens during cliff period.                                                                  | Auto      | The tokens are claimed correctly.                     | ✅      |
-| 4.5. claimTokens                           | Should be able to claim listing tokens + cliff tokens after cliff.                                                           | Auto      | The tokens are claimed correctly.                     | ✅      |
-| 4.6. claimTokens                           | Should be able to claim listing tokens + cliff tokens + part of vesting tokens during vesting period.                        | Auto      | The tokens are claimed correctly.                     | ✅      |
-| 4.7. claimTokens                           | Should be able to claim all tokens after vesting is ended.                                                                   | Auto      | The tokens are claimed correctly.                     | ✅      |
-| 5.1. removeBeneficiary                     | Should be able to remove a beneficiary from a pool before listing.                                                           | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.2. removeBeneficiary                     | Should be able to remove a beneficiary from a pool during cliff period when no tokens were claimed.                          | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.3 removeBeneficiary                      | Should be able to remove a beneficiary from a pool during cliff period when tokens were claimed during cliff.                | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.4. removeBeneficiary                     | Should be able to remove a beneficiary from a pool at the beginning of vesting when no tokens were claimed.                  | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.5. removeBeneficiary                     | Should be able to remove a beneficiary from a pool at the beginning of vesting when tokens were claimed during cliff period. | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.6. removeBeneficiary                     | Should be able to remove a beneficiary from a pool during vesting when no tokens were claimed.                               | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.7. removeBeneficiary                     | Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during cliff.                     | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.8. removeBeneficiary                     | Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after cliff.                      | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.9. removeBeneficiary                     | Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during vesting.                   | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.10. removeBeneficiary                    | Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after vesting.                    | Auto      | The beneficiary is removed correctly.                 | ✅      |
-| 5.11. removeBeneficiary                    | Should not be able to claim tokens after remove.                                                                             | Auto      | Reverts with a custom message.                        | ✅      |
-| 6.1. unlockedTokenAmount  (all edge cases) | Should calculate total unlocked token amount correctly.                                                                      | Auto      | Function works as expected.                           | ✅      |
-| 7.1. totalUnclaimedPoolTokens              | Should calculate total unclaimed pool tokens correctly after adding beneficiaries.                                           | Auto      | Total unclaimed pool tokens are calculated correctly. | ✅      |
-| 7.2. totalUnclaimedPoolTokens              | Should calculate total unclaimed pool tokens correctly after removing a beneficiary who claimed listing tokens.              | Auto      | Total unclaimed pool tokens are calculated correctly. | ✅      |
-| 7.3. totalUnclaimedPoolTokens              | Should calculate total unclaimed pool tokens correctly after a beneficiary claimed listing tokens.                           | Auto      | Total unclaimed pool tokens are calculated correctly. | ✅      |
+Full log can be found in [testsLog.txt](test/testsLog.txt)
+<details>
+  <summary>Run tests log</summary>
+  
+  ```javascript
+    Contract: VestingMock
+    1. addVestingPool
+      √ 1.1. Should be able to add a pool (4470ms)
+      √ 1.2. Should not be able to add a pool from non-owner account (3957ms)
+      √ 1.3. Should not be able to add a pool when _listingPercentageDivisor==0 (3952ms)
+      √ 1.4. Should not be able to add a pool when _cliffPercentageDivisor==0 (3833ms)
+      √ 1.5. Should not be able to add a pool when _cliffPercentageDivisor==0 and _listingPercentageDivisor==0 (3960ms)
+      √ 1.6. Should not be able to add a pool when pool cliff Percentage + pool listing Percentage > 100 (4223ms)
+    2. addToBeneficiariesList
+      √ 2.1. Should be able to add a beneficiary to a pool (6379ms)
+      √ 2.2. Should not be able to add a beneficiary from a non-owner account (5773ms)
+      √ 2.3. Should not be able to add a beneficiary to a pool when _tokenAmount==0 (6016ms)
+      √ 2.4. Should not be able to add a beneficiary to a non-existing pool (3591ms)
+      √ 2.5. Should not be able to add a beneficiary to a pool when _tokenAmount exceeds pool.totalPoolTokenAmount-pool.lockedPoolTokens (5337ms)
+      √ 2.6. Should be able to add a beneficiary to a pool twice (7828ms)
+    3. addToBeneficiariesListMultiple
+      √ 3.1. Should not be able to add beneficiaries to a pool from a non-owner account (6018ms)
+      √ 3.2. Should not be able to add beneficiaries to a pool when _tokenAmount and _addresses are of different lengths (5677ms)
+      √ 3.3. Should not be able to add multiple beneficiaries to a pool when there is not enough tokens in it (5957ms)
+    4. claimTokens
+      √ 4.1. Should not be able to claim tokens before listing (14787ms)
+      √ 4.2. A Beneficiary should not be able to claim tokens from a pool if he is not in it (13711ms)
+      √ 4.3. Should not be able to claim listing tokens twice (14368ms)
+      √ 4.4. Should be able to claim listing tokens during cliff period (15012ms)
+      √ 4.5. Should be able to claim listing tokens + cliff tokens after cliff (16577ms)
+      √ 4.6. Should be able to claim listing tokens + cliff tokens + part of vesting tokens during vesting period (15514ms)
+      √ 4.7. Should be able to claim all tokens after vesting is ended (17263ms)
+    5. removeBeneficiary
+      √ 5.1. Should be able to remove a beneficiary from a pool before listing (8414ms)
+      √ 5.2. Should be able to remove a beneficiary from a pool during cliff period when no tokens were claimed (9343ms)
+      √ 5.3. Should be able to remove a beneficiary from a pool during cliff period when tokens were claimed during cliff (16531ms)
+      √ 5.4. Should be able to remove a beneficiary from a pool at the beginning of vesting when no tokens were claimed (8897ms)
+      √ 5.5. Should be able to remove a beneficiary from a pool at the beginning of vesting when tokens were claimed during cliff period (16208ms)
+      √ 5.6. Should be able to remove a beneficiary from a pool during vesting when no tokens were claimed (14908ms)
+      √ 5.7. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during cliff (18523ms)
+      √ 5.8. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after cliff (17952ms)
+      √ 5.9. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during vesting (15328ms)
+      √ 5.10. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after vesting (14930ms)
+      √ 5.11. Should not be able to claim tokens after remove (15345ms)
+    6. unlockedTokenAmount (all edge cases)
+      √ 6.1. Should calculate total unlocked token amount correctly (34458ms)
+    7. totalUnlockedPoolTokens
+      √ 7.1. Should calculate total unlocked pool tokens correctly after adding beneficiaries (14286ms)
+      √ 7.2. Should calculate total unlocked pool tokens correctly after removing a beneficiary who claimed listing tokens (15088ms)
+      √ 7.3. Should calculate total unlocked pool tokens correctly after a beneficiary claimed listing tokens (16220ms)
+
+
+  37 passing (7m)
+    }
+  ```
+</details>
