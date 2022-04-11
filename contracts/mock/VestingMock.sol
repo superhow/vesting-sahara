@@ -447,8 +447,7 @@ contract VestingMock is Initializable, OwnableUpgradeable {
         );
         vestingPools[_poolIndex].beneficiaries[msg.sender].claimedTotalTokenAmount += unlockedTokens;
 
-        token.safeIncreaseAllowance(address(this), unlockedTokens);
-        token.safeTransferFrom(address(this), msg.sender, unlockedTokens);
+        token.safeTransfer(msg.sender, unlockedTokens);
         
         emit Claim(msg.sender, _poolIndex, unlockedTokens);
     }

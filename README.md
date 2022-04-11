@@ -34,9 +34,7 @@ Data for pools:
 # Deployment
 ## Prerequisites:
 - node  (version > 14)
-- Ubuntu or Windows (via git bash)
-- ledger (for mainnet deployment)
-- MATIC (for mainnet deployment)
+- Ubuntu
 
 Edit env file (**listing date** and **token addresses** (if not deployed in 'development' server):
 - Listing date **must** be set in the future! Format - epoch timestamp.
@@ -143,7 +141,7 @@ Token amount for beneficiary is recalculated this way: **Total amount = Listing 
 Beneficiaries can claim tokens from the selected pools
 - **If listing has started** : listing token amount;
 - **If cliff has ended** : listing token amount + cliff token amount + vested unlocked tokens: 
- ![Claiming](unlockedTokens.png?raw=true) <br />
+ <img src="https://latex.codecogs.com/svg.image?unlockedTokens&space;=&space;listingAmount&space;&plus;&space;cliffAmount&space;&plus;&space;\frac{vestingAmount&space;*&space;periodsPassed}{duration}" /><br />
 - **If vesting period ended** : transfer all allocated and unclaimed tokens.
 
 ## Deployment logic

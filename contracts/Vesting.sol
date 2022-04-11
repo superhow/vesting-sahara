@@ -88,7 +88,6 @@ contract Vesting is Initializable, OwnableUpgradeable {
         addVestingPool('Team', 0, 1, 360, 0, 1, 48, UnlockTypes.DAILY, 110000000 * 10 ** 18);
         addVestingPool('Advisors',  0, 1, 180, 0, 1, 18, UnlockTypes.DAILY, 39000000 * 10 ** 18);
         addVestingPool('Staking/Yield farming', 0, 1, 0, 0, 1, 120, UnlockTypes.DAILY, 227500000 * 10 ** 18);
-        
     }
 
     /**
@@ -333,8 +332,7 @@ contract Vesting is Initializable, OwnableUpgradeable {
         );
         vestingPools[_poolIndex].beneficiaries[msg.sender].claimedTotalTokenAmount += unlockedTokens;
 
-        token.safeIncreaseAllowance(address(this), unlockedTokens);
-        token.safeTransferFrom(address(this), msg.sender, unlockedTokens);
+        token.safeTransfer(msg.sender, unlockedTokens);
         
         emit Claim(msg.sender, _poolIndex, unlockedTokens);
     }
@@ -371,8 +369,11 @@ contract Vesting is Initializable, OwnableUpgradeable {
         onlyOwner 
         addressNotZero(_address) 
     {
-        _customToken.safeIncreaseAllowance(address(this), _tokenAmount);
-        _customToken.safeTransferFrom(address(this), _address, _tokenAmount);
+        require(
+            _customToken != token,
+            "You can not withdraw vested contract tokens."
+        );
+        _customToken.safeTransfer(_address, _tokenAmount);
     }
 
     /**
