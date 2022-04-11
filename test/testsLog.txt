@@ -1,22 +1,23 @@
+> rm -rf build && npx truffle compile && npx truffle test
+
+
 Compiling your contracts...
 ===========================
-> Compiling @openzeppelin\contracts-upgradeable\access\OwnableUpgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\proxy\utils\Initializable.sol
-> Compiling @openzeppelin\contracts-upgradeable\token\ERC20\IERC20Upgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\token\ERC20\utils\SafeERC20Upgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\utils\AddressUpgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\utils\ContextUpgradeable.sol
-> Compiling @openzeppelin\contracts\access\Ownable.sol
-> Compiling @openzeppelin\contracts\token\ERC20\ERC20.sol
-> Compiling @openzeppelin\contracts\token\ERC20\IERC20.sol
-> Compiling @openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol
-> Compiling @openzeppelin\contracts\utils\Context.sol
-> Compiling .\contracts\Vesting.sol
-> Compiling .\contracts\gasOptimisationTest\VestingTestNoOpt.sol
-> Compiling .\contracts\gasOptimisationTest\VestingTestOpt.sol
-> Compiling .\contracts\mock\MockToken.sol
-> Compiling .\contracts\mock\VestingMock.sol
-> Artifacts written to C:\00Work\SAHARA\Audit\sahara-vesting\build\contracts
+> Compiling ./contracts/Vesting.sol
+> Compiling ./contracts/mock/MockToken.sol
+> Compiling ./contracts/mock/VestingMock.sol
+> Compiling @openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol
+> Compiling @openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol
+> Compiling @openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol
+> Compiling @openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol
+> Compiling @openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol
+> Compiling @openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol
+> Compiling @openzeppelin/contracts/access/Ownable.sol
+> Compiling @openzeppelin/contracts/token/ERC20/ERC20.sol
+> Compiling @openzeppelin/contracts/token/ERC20/IERC20.sol
+> Compiling @openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol
+> Compiling @openzeppelin/contracts/utils/Context.sol
+> Artifacts written to /root/0AUDIT/vesting-sahara/build/contracts
 > Compiled successfully using:
    - solc: 0.8.7+commit.e28d00a7.Emscripten.clang
 
@@ -25,104 +26,72 @@ Using network 'development'.
 
 Compiling your contracts...
 ===========================
-> Compiling @openzeppelin\contracts-upgradeable\access\OwnableUpgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\proxy\utils\Initializable.sol
-> Compiling @openzeppelin\contracts-upgradeable\token\ERC20\IERC20Upgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\token\ERC20\utils\SafeERC20Upgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\utils\AddressUpgradeable.sol
-> Compiling @openzeppelin\contracts-upgradeable\utils\ContextUpgradeable.sol
-> Compiling @openzeppelin\contracts\access\Ownable.sol
-> Compiling @openzeppelin\contracts\token\ERC20\ERC20.sol
-> Compiling @openzeppelin\contracts\token\ERC20\IERC20.sol
-> Compiling @openzeppelin\contracts\token\ERC20\extensions\IERC20Metadata.sol
-> Compiling @openzeppelin\contracts\utils\Context.sol
-> Compiling .\contracts\Vesting.sol
-> Compiling .\contracts\gasOptimisationTest\VestingTestNoOpt.sol
-> Compiling .\contracts\gasOptimisationTest\VestingTestOpt.sol
-> Compiling .\contracts\mock\MockToken.sol
-> Compiling .\contracts\mock\VestingMock.sol
-> Artifacts written to C:\Users\MARTAS~1\AppData\Local\Temp\test--31808-6Y1MV8I3c162
-> Compiled successfully using:
-   - solc: 0.8.7+commit.e28d00a7.Emscripten.clang
+> Everything is up to date, there is nothing to compile.
 
 
 -------------------------------------
 Deployed vesting in:  development
-Vesting proxy address:  0xECf6aD87a2b8a43F9F13776a4d715D6651553A3f
-Contract owner:  0xB6E0e9597D2F5A5D1E5D6E5D333fc48ffA1Ec30C
--------------------------------------
-
-
--------------------------------------
-Deployed vesting (no optimization) in:  development
-Vesting proxy address:  0x338e187120BD043806b7DD5F3Eae3fC5F6f2cB0D
-Contract owner:  0xB6E0e9597D2F5A5D1E5D6E5D333fc48ffA1Ec30C
--------------------------------------
-
-
--------------------------------------
-Deployed vesting (with suppoed optimization) in:  development
-Vesting proxy address:  0xCfaDEAAe1EEF5128A8184C961Bc398593c526960
-Contract owner:  0xB6E0e9597D2F5A5D1E5D6E5D333fc48ffA1Ec30C
+Vesting proxy address:  0xB84bfF1d32875946e21403830D94ef185d000493
+Contract owner:  0x9102E9602C71b18F32e4BBD329060C9736db7Cc9
 -------------------------------------
 
 7 accounts taken for testing
 [
-  '0x8Bb5077bcC56d26ff13c7eE88839fE47BAbB74B8',
-  '0x5516A79aFFA8181C0E0B32C9e8dE2C82752a5a6e',
-  '0x55AEF5377B382Ef7d4857076Ab9141E8aA652cA5',
-  '0xCf54Db787A30C5E3fb56C33bd6f9be320174f519',
-  '0xB6Dd1da804e8Ee73eE5FbC380B936AE932c7c7C3',
-  '0xB6E0e9597D2F5A5D1E5D6E5D333fc48ffA1Ec30C',
-  '0x4d22eBb90432Bc6895bDB2bed615875b0c164449'
+  '0xCCfe9F74E773eF1154E7315067283E3B25a7A44b',
+  '0x12A7A5d66E909A9Ae2A3AA2eFB14c3BFa94197a0',
+  '0x7affD97FC246DF13B379b45f8cfC201cFb5E53D7',
+  '0x7527483695438c2cfcb7Ea061fDD71CAC855FB54',
+  '0x2c3dd89e5a5DD92609b20f6Fc6E1d208737fb06c',
+  '0x9102E9602C71b18F32e4BBD329060C9736db7Cc9',
+  '0xDf10b8a35A57c78b39d7bdCE7Aed41fc2633227d'
 ]
 
 
- Contract: VestingMock
+  Contract: VestingMock
     1. addVestingPool
-      √ 1.1. Should be able to add a pool (4470ms)
-      √ 1.2. Should not be able to add a pool from non-owner account (3957ms)
-      √ 1.3. Should not be able to add a pool when _listingPercentageDivisor==0 (3952ms)
-      √ 1.4. Should not be able to add a pool when _cliffPercentageDivisor==0 (3833ms)
-      √ 1.5. Should not be able to add a pool when _cliffPercentageDivisor==0 and _listingPercentageDivisor==0 (3960ms)
-      √ 1.6. Should not be able to add a pool when pool cliff Percentage + pool listing Percentage > 100 (4223ms)
+      ✓ 1.1. Should be able to add a pool (2483ms)
+      ✓ 1.2. Should not be able to add a pool from non-owner account (1395ms)
+      ✓ 1.3. Should not be able to add a pool when _listingPercentageDivisor==0 (1115ms)
+      ✓ 1.4. Should not be able to add a pool when _cliffPercentageDivisor==0 (1059ms)
+      ✓ 1.5. Should not be able to add a pool when _cliffPercentageDivisor==0 and _listingPercentageDivisor==0 (1284ms)
+      ✓ 1.6. Should not be able to add a pool when pool cliff Percentage + pool listing Percentage > 100 (1497ms)
     2. addToBeneficiariesList
-      √ 2.1. Should be able to add a beneficiary to a pool (6379ms)
-      √ 2.2. Should not be able to add a beneficiary from a non-owner account (5773ms)
-      √ 2.3. Should not be able to add a beneficiary to a pool when _tokenAmount==0 (6016ms)
-      √ 2.4. Should not be able to add a beneficiary to a non-existing pool (3591ms)
-      √ 2.5. Should not be able to add a beneficiary to a pool when _tokenAmount exceeds pool.totalPoolTokenAmount-pool.lockedPoolTokens (5337ms)
-      √ 2.6. Should be able to add a beneficiary to a pool twice (7828ms)
+      ✓ 2.1. Should be able to add a beneficiary to a pool (1867ms)
+      ✓ 2.2. Should not be able to add a beneficiary from a non-owner account (1589ms)
+      ✓ 2.3. Should not be able to add a beneficiary to a pool when _tokenAmount==0 (1701ms)
+      ✓ 2.4. Should not be able to add a beneficiary to a non-existing pool (1536ms)
+      ✓ 2.5. Should not be able to add a beneficiary to a pool when _tokenAmount exceeds pool.totalPoolTokenAmount-pool.lockedPoolTokens (1880ms)
+      ✓ 2.6. Should be able to add a beneficiary to a pool twice (1961ms)
     3. addToBeneficiariesListMultiple
-      √ 3.1. Should not be able to add beneficiaries to a pool from a non-owner account (6018ms)
-      √ 3.2. Should not be able to add beneficiaries to a pool when _tokenAmount and _addresses are of different lengths (5677ms)
-      √ 3.3. Should not be able to add multiple beneficiaries to a pool when there is not enough tokens in it (5957ms)
+      ✓ 3.1. Should not be able to add beneficiaries to a pool from a non-owner account (1441ms)
+      ✓ 3.2. Should not be able to add beneficiaries to a pool when _tokenAmount and _addresses are of different lengths (1580ms)
+      ✓ 3.3. Should not be able to add multiple beneficiaries to a pool when there is not enough tokens in it (2076ms)
     4. claimTokens
-      √ 4.1. Should not be able to claim tokens before listing (14787ms)
-      √ 4.2. A Beneficiary should not be able to claim tokens from a pool if he is not in it (13711ms)
-      √ 4.3. Should not be able to claim listing tokens twice (14368ms)
-      √ 4.4. Should be able to claim listing tokens during cliff period (15012ms)
-      √ 4.5. Should be able to claim listing tokens + cliff tokens after cliff (16577ms)
-      √ 4.6. Should be able to claim listing tokens + cliff tokens + part of vesting tokens during vesting period (15514ms)
-      √ 4.7. Should be able to claim all tokens after vesting is ended (17263ms)
+      ✓ 4.1. Should not be able to claim tokens before listing (5472ms)
+      ✓ 4.2. A Beneficiary should not be able to claim tokens from a pool if he is not in it (5137ms)
+      ✓ 4.3. Should not be able to claim listing tokens twice (6551ms)
+      ✓ 4.4. Should be able to claim listing tokens during cliff period (6094ms)
+      ✓ 4.5. Should be able to claim listing tokens + cliff tokens after cliff (6628ms)
+      ✓ 4.6. Should be able to claim listing tokens + cliff tokens + part of vesting tokens during vesting period (6578ms)
+      ✓ 4.7. Should be able to claim all tokens after vesting is ended (6548ms)
     5. removeBeneficiary
-      √ 5.1. Should be able to remove a beneficiary from a pool before listing (8414ms)
-      √ 5.2. Should be able to remove a beneficiary from a pool during cliff period when no tokens were claimed (9343ms)
-      √ 5.3. Should be able to remove a beneficiary from a pool during cliff period when tokens were claimed during cliff (16531ms)
-      √ 5.4. Should be able to remove a beneficiary from a pool at the beginning of vesting when no tokens were claimed (8897ms)
-      √ 5.5. Should be able to remove a beneficiary from a pool at the beginning of vesting when tokens were claimed during cliff period (16208ms)
-      √ 5.6. Should be able to remove a beneficiary from a pool during vesting when no tokens were claimed (14908ms)
-      √ 5.7. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during cliff (18523ms)
-      √ 5.8. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after cliff (17952ms)
-      √ 5.9. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during vesting (15328ms)
-      √ 5.10. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after vesting (14930ms)
-      √ 5.11. Should not be able to claim tokens after remove (15345ms)
+      ✓ 5.1. Should be able to remove a beneficiary from a pool before listing (4631ms)
+      ✓ 5.2. Should be able to remove a beneficiary from a pool during cliff period when no tokens were claimed (2823ms)
+      ✓ 5.3. Should be able to remove a beneficiary from a pool during cliff period when tokens were claimed during cliff (5478ms)
+      ✓ 5.4. Should be able to remove a beneficiary from a pool at the beginning of vesting when no tokens were claimed (2936ms)
+      ✓ 5.5. Should be able to remove a beneficiary from a pool at the beginning of vesting when tokens were claimed during cliff period (5757ms)
+      ✓ 5.6. Should be able to remove a beneficiary from a pool during vesting when no tokens were claimed (5919ms)
+      ✓ 5.7. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during cliff (7257ms)
+      ✓ 5.8. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after cliff (7433ms)
+      ✓ 5.9. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during vesting (7242ms)
+      ✓ 5.10. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after vesting (6275ms)
+      ✓ 5.11. Should not be able to claim tokens after remove (5807ms)
     6. unlockedTokenAmount (all edge cases)
-      √ 6.1. Should calculate total unlocked token amount correctly (34458ms)
+      ✓ 6.1. Should calculate total unlocked token amount correctly (12633ms)
     7. totalUnlockedPoolTokens
-      √ 7.1. Should calculate total unlocked pool tokens correctly after adding beneficiaries (14286ms)
-      √ 7.2. Should calculate total unlocked pool tokens correctly after removing a beneficiary who claimed listing tokens (15088ms)
-      √ 7.3. Should calculate total unlocked pool tokens correctly after a beneficiary claimed listing tokens (16220ms)
+      ✓ 7.1. Should calculate total unlocked pool tokens correctly after adding beneficiaries (6582ms)
+      ✓ 7.2. Should calculate total unlocked pool tokens correctly after removing a beneficiary who claimed listing tokens (7662ms)
+      ✓ 7.3. Should calculate total unlocked pool tokens correctly after a beneficiary claimed listing tokens (7886ms)
 
 
-  37 passing (7m)
+  37 passing (3m)
