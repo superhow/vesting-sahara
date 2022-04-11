@@ -38,7 +38,9 @@ Data for pools:
 - ledger (for mainnet deployment)
 - MATIC (for mainnet deployment)
 
-Edit env file (listing date and token addresses (if not deployed in 'development' server:
+Edit env file (**listing date** and **token addresses** (if not deployed in 'development' server):
+- Listing date **must** be set in the future! Format - epoch timestamp.
+
 ```bash
 # ****SCAN API KEYS FOR VERIFICATION
 # Obtain key in polygonscan. One key works for test and main nets.
