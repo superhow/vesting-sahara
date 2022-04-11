@@ -1,21 +1,22 @@
-const MockToken = artifacts.require("MockToken");
+const TestToken = artifacts.require("MockToken");
 const VestingMain = artifacts.require("VestingMock");
 
 const Chance = require("chance");
 const assert = require("assert");
 
-contract("VestingMain", async (accounts) => {
+contract("VestingMock", async (accounts) => {
   if (accounts.length < 7) {
     throw new Error("Too few accounts");
   } else {
     accounts = new Chance().pickset(accounts, 7);
     console.log("7 accounts taken for testing");
+    console.log(accounts)
   }
 
   async function createFixtures() {
     const chance = new Chance();
     const owner = chance.pickone(accounts);
-    const token = await MockToken.new({ from: owner });
+    const token = await TestToken.new({ from: owner });
     const vestingMain = await VestingMain.new();
     await vestingMain.initialize(token.address, 1000000, { from: owner });
     return [chance, owner, vestingMain, token];
@@ -146,7 +147,6 @@ contract("VestingMain", async (accounts) => {
     _vestingPools,
     _poolIndex,
     _beneficiary,
-    _isWhitelisted,
     _totalTokens,
     _listingTokenAmount,
     _cliffTokenAmount,
@@ -157,28 +157,26 @@ contract("VestingMain", async (accounts) => {
       _poolIndex,
       _beneficiary
     );
-    const isWhitelisted = result[0];
-    const totalTokens = result[1];
-    const listingTokenAmount = result[2];
-    const cliffTokenAmount = result[3];
-    const vestedTokenAmount = result[4];
-    const claimedTotalTokenAmount = result[5];
+    const totalTokensFromContract = result[0];
+    const listingTokenAmountFromContract = result[1];
+    const cliffTokenAmountFromContract = result[2];
+    const vestedTokenAmountFromContract = result[3];
+    const claimedTotalTokenAmountFromContract = result[4];
 
-    assert.equal(result[0], _isWhitelisted, "isWhitelisted is incorrect");
-    assert.equal(result[1], _totalTokens, "totalTokens is incorrect");
+    assert.equal(totalTokensFromContract, _totalTokens, "totalTokens is incorrect.");
     assert.equal(
-      result[2],
+      listingTokenAmountFromContract,
       _listingTokenAmount,
       "listingTokenAmount is incorrect"
     );
-    assert.equal(result[3], _cliffTokenAmount, "cliffTokenAmount is incorrect");
+    assert.equal(cliffTokenAmountFromContract, _cliffTokenAmount, "cliffTokenAmount is incorrect");
     assert.equal(
-      result[4],
+      vestedTokenAmountFromContract,
       _vestedTokenAmount,
       "vestedTokenAmount is incorrect"
     );
     assert.equal(
-      result[5],
+      claimedTotalTokenAmountFromContract,
       _claimedTokenAmount,
       "claimedTotalTokenAmount is incorrect"
     );
@@ -397,7 +395,6 @@ contract("VestingMain", async (accounts) => {
         vestingPools,
         0,
         tryer,
-        true,
         199,
         9,
         19,
@@ -517,15 +514,10 @@ contract("VestingMain", async (accounts) => {
         from: owner,
       });
 
-      const result = await vestingPools.getVestingPoolBeneficiary_TEST(
-        0,
-        tryer
-      );
       await checkBeneficiaryState(
         vestingPools,
         0,
         tryer,
-        true,
         300,
         15,
         30,
@@ -686,7 +678,7 @@ contract("VestingMain", async (accounts) => {
         },
         {
           message:
-            "Returned error: VM Exception while processing transaction: revert Address is not in the whitelist. -- Reason given: Address is not in the whitelist..",
+            "Returned error: VM Exception while processing transaction: revert Address is not in the beneficiary list. -- Reason given: Address is not in the beneficiary list..",
         }
       );
       await assert;
@@ -744,7 +736,6 @@ contract("VestingMain", async (accounts) => {
         vestingPools,
         0,
         tryer,
-        true,
         199,
         9,
         19,
@@ -778,7 +769,6 @@ contract("VestingMain", async (accounts) => {
         vestingPools,
         0,
         tryer,
-        true,
         199,
         9,
         19,
@@ -812,7 +802,6 @@ contract("VestingMain", async (accounts) => {
         vestingPools,
         0,
         tryer,
-        true,
         200,
         10,
         20,
@@ -845,7 +834,6 @@ contract("VestingMain", async (accounts) => {
         vestingPools,
         0,
         tryer,
-        true,
         200,
         10,
         20,
@@ -855,340 +843,341 @@ contract("VestingMain", async (accounts) => {
     });
   });
 
-  /**
+    /**
    * @notice Removes beneficiary from the structure.
    * @param _poolIndex Index that refers to vesting pool object.
    * @param _address Address of the beneficiary wallet.
    */
-  describe("5. removeBeneficiary", () => {
-    it("5.1. Should be able to remove a beneficiary from a pool before listing", async () => {
-      const [chance, owner, vestingPools] = await createFixtures();
+     describe("5. removeBeneficiary", () => {
+      it("5.1. Should be able to remove a beneficiary from a pool before listing", async () => {
+        const [chance, owner, vestingPools] = await createFixtures();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.setMockTimestamp(999, { from: owner });
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+  
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          0
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
+      });
+      it("5.2. Should be able to remove a beneficiary from a pool during cliff period when no tokens were claimed", async () => {
+        const [chance, owner, vestingPools] = await createFixtures();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000001, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          0
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
+      });
+      it("5.3. Should be able to remove a beneficiary from a pool during cliff period when tokens were claimed during cliff", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000001, { from: owner });
+        await vestingPools.claimTokens(0, { from: tryer });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          9
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
+      });
+      it("5.4. Should be able to remove a beneficiary from a pool at the beginning of vesting when no tokens were claimed", async () => {
+        const [chance, owner, vestingPools] = await createFixtures();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000000, { from: owner });
+        await vestingPools.addMockDaysTimestamp(2, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          0
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
+      });
+      it("5.5. Should be able to remove a beneficiary from a pool at the beginning of vesting when tokens were claimed during cliff period", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000001, { from: owner });
+        await vestingPools.claimTokens(0, { from: tryer });
+        await vestingPools.addMockDaysTimestamp(2, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          9
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, 0, 0, 0, 0, 0);
+      });
+      it("5.6. Should be able to remove a beneficiary from a pool during vesting when no tokens were claimed", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.addMockMonthsTimestamp(2, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          0
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, 0, 0, 0, 0, 0);
+      });
+      it("5.7. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during cliff", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000001, { from: owner });
+        await vestingPools.claimTokens(0, { from: tryer });
+        await vestingPools.addMockMonthsTimestamp(2, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          9
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, 0, 0, 0, 0, 0);
+      });
+      it("5.8. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after cliff", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000001, { from: owner });
+        await vestingPools.addMockDaysTimestamp(1, { from: owner });
+        await vestingPools.claimTokens(0, { from: tryer });
+        await vestingPools.addMockMonthsTimestamp(2, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          28
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, 0, 0, 0, 0, 0);
+      });
+      it("5.9. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during vesting", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000001, { from: owner });
+        await vestingPools.addMockMonthsTimestamp(2, { from: owner });
+        await vestingPools.claimTokens(0, { from: tryer });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          85
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, 0, 0, 0, 0, 0);
+      });
+      it("5.10. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after vesting", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.setMockTimestamp(1000001, { from: owner });
+        await vestingPools.addMockMonthsTimestamp(4, { from: owner });
+        await vestingPools.claimTokens(0, { from: tryer });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await checkPoolState(
+          vestingPools,
+          0,
+          "Test1",
+          1,
+          20,
+          1,
+          1,
+          10,
+          3,
+          1,
+          "10000000000000000000000",
+          199
+        );
+        await checkBeneficiaryState(vestingPools, 0, tryer, 0, 0, 0, 0, 0);
+      });
+      it("5.11. Should not be able to claim tokens after remove", async () => {
+        const [chance, owner, vestingPools] =
+          await createFixturesWithTokenDistribution();
+  
+        await addNormalVestingPool_Test1(vestingPools, owner);
+  
+        let tryer;
+        do {
+          tryer = chance.pickone(accounts);
+        } while (tryer == owner);
+        await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
+        await vestingPools.addMockMonthsTimestamp(4, { from: owner });
+        await vestingPools.removeBeneficiary(0, tryer, { from: owner });
+        await assert.rejects(
+          async function () {
+            await vestingPools.claimTokens(0, {
+              from: tryer,
+            });
+          },
+          {
+            message:
+              "Returned error: VM Exception while processing transaction: revert Address is not in the beneficiary list. -- Reason given: Address is not in the beneficiary list..",
+          }
+        );
+        await assert;
+      });
+    });  
 
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.setMockTimestamp(999, { from: owner });
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        0
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.2. Should be able to remove a beneficiary from a pool during cliff period when no tokens were claimed", async () => {
-      const [chance, owner, vestingPools] = await createFixtures();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000001, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        0
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.3. Should be able to remove a beneficiary from a pool during cliff period when tokens were claimed during cliff", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000001, { from: owner });
-      await vestingPools.claimTokens(0, { from: tryer });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        9
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.4. Should be able to remove a beneficiary from a pool at the beginning of vesting when no tokens were claimed", async () => {
-      const [chance, owner, vestingPools] = await createFixtures();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000000, { from: owner });
-      await vestingPools.addMockDaysTimestamp(2, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        0
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.5. Should be able to remove a beneficiary from a pool at the beginning of vesting when tokens were claimed during cliff period", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000001, { from: owner });
-      await vestingPools.claimTokens(0, { from: tryer });
-      await vestingPools.addMockDaysTimestamp(2, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        9
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.6. Should be able to remove a beneficiary from a pool during vesting when no tokens were claimed", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.addMockMonthsTimestamp(2, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        0
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.7. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during cliff", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000001, { from: owner });
-      await vestingPools.claimTokens(0, { from: tryer });
-      await vestingPools.addMockMonthsTimestamp(2, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        9
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.8. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after cliff", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000001, { from: owner });
-      await vestingPools.addMockDaysTimestamp(1, { from: owner });
-      await vestingPools.claimTokens(0, { from: tryer });
-      await vestingPools.addMockMonthsTimestamp(2, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        28
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.9. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed during vesting", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000001, { from: owner });
-      await vestingPools.addMockMonthsTimestamp(2, { from: owner });
-      await vestingPools.claimTokens(0, { from: tryer });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        85
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.10. Should be able to remove a beneficiary from a pool during vesting when tokens were claimed after vesting", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.setMockTimestamp(1000001, { from: owner });
-      await vestingPools.addMockMonthsTimestamp(4, { from: owner });
-      await vestingPools.claimTokens(0, { from: tryer });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await checkPoolState(
-        vestingPools,
-        0,
-        "Test1",
-        1,
-        20,
-        1,
-        1,
-        10,
-        3,
-        1,
-        "10000000000000000000000",
-        199
-      );
-      await checkBeneficiaryState(vestingPools, 0, tryer, false, 0, 0, 0, 0, 0);
-    });
-    it("5.11. Should not be able to claim tokens after remove", async () => {
-      const [chance, owner, vestingPools] =
-        await createFixturesWithTokenDistribution();
-
-      await addNormalVestingPool_Test1(vestingPools, owner);
-
-      let tryer;
-      do {
-        tryer = chance.pickone(accounts);
-      } while (tryer == owner);
-      await vestingPools.addToBeneficiariesList(0, tryer, 199, { from: owner });
-      await vestingPools.addMockMonthsTimestamp(4, { from: owner });
-      await vestingPools.removeBeneficiary(0, tryer, { from: owner });
-      await assert.rejects(
-        async function () {
-          await vestingPools.claimTokens(0, {
-            from: tryer,
-          });
-        },
-        {
-          message:
-            "Returned error: VM Exception while processing transaction: revert Address is not in the whitelist. -- Reason given: Address is not in the whitelist..",
-        }
-      );
-      await assert;
-    });
-  });
 
   /**
    * @notice Calculates unlocked and unclaimed tokens based on the days passed.
@@ -1360,8 +1349,8 @@ contract("VestingMain", async (accounts) => {
    * @notice Checks how many tokens unlocked in a pool (not allocated to any user).
    * @param _poolIndex Index that refers to vesting pool object.
    */
-  describe("7. totalUnclaimedPoolTokens", () => {
-    it("7.1. Should calculate total unclaimed pool tokens correctly after adding beneficiaries", async () => {
+  describe("7. totalUnlockedPoolTokens", () => {
+    it("7.1. Should calculate total unlocked pool tokens correctly after adding beneficiaries", async () => {
       const [, owner, vestingPools] =
         await createFixturesWithTokenDistribution();
 
@@ -1371,12 +1360,12 @@ contract("VestingMain", async (accounts) => {
       await vestingPools.addToBeneficiariesList(0, owner, 199, { from: owner });
       await vestingPools.setMockTimestamp(10000, { from: owner });
       assert.equal(
-        await vestingPools.totalUnclaimedPoolTokens(0),
+        await vestingPools.totalUnlockedPoolTokens(0),
         "9999999999999999999602",
         "Total unclaimed pool tokens were calculated incorrectly"
       );
     });
-    it("7.2. Should calculate total unclaimed pool tokens correctly after removing a beneficiary who claimed listing tokens", async () => {
+    it("7.2. Should calculate total unlocked pool tokens correctly after removing a beneficiary who claimed listing tokens", async () => {
       const [chance, owner, vestingPools] =
         await createFixturesWithTokenDistribution();
 
@@ -1392,12 +1381,12 @@ contract("VestingMain", async (accounts) => {
       await vestingPools.claimTokens(0, { from: tryer });
       await vestingPools.removeBeneficiary(0, tryer, { from: owner });
       assert.equal(
-        await vestingPools.totalUnclaimedPoolTokens(0),
+        await vestingPools.totalUnlockedPoolTokens(0),
         "9999999999999999999792",
         "Total unclaimed pool tokens were calculated incorrectly"
       );
     });
-    it("7.3. Should calculate total unclaimed pool tokens correctly after a beneficiary claimed listing tokens", async () => {
+    it("7.3. Should calculate total unlocked pool tokens correctly after a beneficiary claimed listing tokens", async () => {
       const [chance, owner, vestingPools] =
         await createFixturesWithTokenDistribution();
 
@@ -1412,10 +1401,11 @@ contract("VestingMain", async (accounts) => {
       await vestingPools.setMockTimestamp(1000001, { from: owner });
       await vestingPools.claimTokens(0, { from: tryer });
       assert.equal(
-        await vestingPools.totalUnclaimedPoolTokens(0),
+        await vestingPools.totalUnlockedPoolTokens(0),
         "9999999999999999999602",
-        "Total unclaimed pool tokens were calculated incorrectly"
+        "Total unlocked pool tokens were calculated incorrectly"
       );
     });
   });
+
 });

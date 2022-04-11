@@ -1,0 +1,42 @@
+{
+  "name": "sahara-vesting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "compile": "rm -rf build && npx truffle compile",
+    "migrate:development": "rm -rf build && npx truffle migrate --reset --network development --f 1 --to 1",
+    "migrate:dashboard": "rm -rf build && npx truffle migrate --network dashboard --f 1 --to 1",
+    "migrate:mumbai": "rm -rf build && npx truffle migrate --network mumbai --f 1 --to 1",
+    "test": "rm -rf build && npx truffle compile && npx truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/superhow/sahara-vesting.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/superhow/sahara-vesting/issues"
+  },
+  "homepage": "https://github.com/superhow/sahara-vesting#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.4.2",
+    "@openzeppelin/contracts-upgradeable": "^4.4.2",
+    "@truffle/hdwallet-provider": "^1.7.0",
+    "chance": "^1.1.8",
+    "dotenv": "^10.0.0",
+    "solc": "^0.8.12",
+    "truffle-plugin-verify": "^0.5.23",
+    "web3-utils": "^1.6.1",
+    "truffle": "5.5.0",
+    "ganache-cli": "6.12.2"
+  },
+  "devDependencies": {
+    "@openzeppelin/truffle-upgrades": "^1.14.0"
+  }
+}

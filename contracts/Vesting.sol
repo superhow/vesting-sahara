@@ -1,21 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
 * @title Sahara Vesting Smart Contract
 * @author SUPER HOW?
 * @notice Vesting initializable contract for beneficiary management and unlocked token claiming.
 */
-contract Vesting is Initializable {
-    IERC20 private token;
-    address private contractOwner;
+contract Vesting is Initializable, OwnableUpgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+
+    IERC20Upgradeable private token;
 
     uint private poolCount;
     uint private listingDate;
 
-    event Claim(address indexed _from, uint _poolIndex, uint _tokenAmount);
+    event Claim(address indexed from, uint indexed poolIndex, uint tokenAmount);
+    event VestingPoolAdded(uint indexed poolIndex, uint totalPoolTokenAmount);
+    event BeneficiaryAdded(uint indexed poolIndex, address indexed beneficiary, uint addedTokenAmount);
+    event BeneficiaryRemoved(uint indexed poolIndex, address indexed beneficiary, uint unlockedPoolAmount);
+    event ListingDateChanged(uint oldDate, uint newDate);
 
     enum UnlockTypes{
         DAILY, 
@@ -23,7 +31,6 @@ contract Vesting is Initializable {
     }
 
     struct Beneficiary {
-        bool isWhitelisted;
         uint totalTokens;
 
         uint listingTokenAmount;
@@ -60,12 +67,13 @@ contract Vesting is Initializable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
-    function initialize(IERC20 _token, uint _listingDate) 
+    function initialize(IERC20Upgradeable _token, uint _listingDate) 
         public
         initializer
         validListingDate(_listingDate)
     {
-        contractOwner = msg.sender;
+        __Ownable_init();
+        
         token = _token;
         poolCount = 0;
         listingDate = _listingDate;
@@ -78,7 +86,7 @@ contract Vesting is Initializable {
         addVestingPool('Marketing Round', 1, 20, 0, 0, 1, 24, UnlockTypes.DAILY, 19500000 * 10 ** 18);
         addVestingPool('Community', 0, 1, 360, 0, 1, 48, UnlockTypes.DAILY, 104000000 * 10 ** 18);
         addVestingPool('Team', 0, 1, 360, 0, 1, 48, UnlockTypes.DAILY, 110000000 * 10 ** 18);
-        addVestingPool('Advisors',  0, 1, 180, 0, 1, 18, UnlockTypes.DAILY, 39500000 * 10 ** 18);
+        addVestingPool('Advisors',  0, 1, 180, 0, 1, 18, UnlockTypes.DAILY, 39000000 * 10 ** 18);
         addVestingPool('Staking/Yield farming', 0, 1, 0, 0, 1, 120, UnlockTypes.DAILY, 227500000 * 10 ** 18);
         
     }
@@ -102,16 +110,6 @@ contract Vesting is Initializable {
             _listingDate >= block.timestamp,
             "Listing date can be only set in the future."
         );
-        _;
-    }
-
-    /**
-    * @notice Checks whether the address has owner rights.
-    */
-    modifier onlyOwner() {
-        require(
-            contractOwner == msg.sender, 
-            "Ownable: caller is not the owner");
         _;
     }
 
@@ -157,22 +155,12 @@ contract Vesting is Initializable {
     /**
     * @notice Checks whether the address is beneficiary of the pool.
     */
-    modifier onlyWhitelisted(uint _poolIndex) {
+    modifier onlyBeneficiary(uint _poolIndex) {
         require(
-            vestingPools[_poolIndex].beneficiaries[msg.sender].isWhitelisted,
-            "Address is not in the whitelist."
+            vestingPools[_poolIndex].beneficiaries[msg.sender].totalTokens > 0,
+            "Address is not in the beneficiary list."
         );
         _;
-    }
-
-    /**
-    * @notice Transfer ownership of the contract with all privileges to new owner.
-    */
-    function transferOwnership(address newOwner)
-        external
-        onlyOwner
-    {
-        contractOwner = newOwner;
     }
 
     /**
@@ -212,6 +200,11 @@ contract Vesting is Initializable {
             "Listing and cliff percentage can not exceed 100."
             );
 
+       require(
+           (_vestingDurationInMonths > 0),
+            "Vesting duration can not be 0."
+            );
+
         Pool storage p = vestingPools[poolCount];
 
         p.name = _name;
@@ -232,6 +225,8 @@ contract Vesting is Initializable {
         p.totalPoolTokenAmount = _totalPoolTokenAmount;
 
         poolCount++;
+
+        emit VestingPoolAdded(poolCount - 1, _totalPoolTokenAmount);
     }
 
     /**
@@ -259,7 +254,6 @@ contract Vesting is Initializable {
 
         p.lockedPoolTokens += _tokenAmount;
         Beneficiary storage b = p.beneficiaries[_address];
-        b.isWhitelisted = true;
         b.totalTokens += _tokenAmount;
         b.listingTokenAmount = getTokensByPercentage(b.totalTokens,
                                                     p.listingPercentageDividend,
@@ -269,6 +263,8 @@ contract Vesting is Initializable {
                                                     p.cliffPercentageDividend, 
                                                     p.cliffPercentageDivisor);
         b.vestedTokenAmount = b.totalTokens - b.listingTokenAmount - b.cliffTokenAmount;
+
+        emit BeneficiaryAdded(_poolIndex, _address, _tokenAmount);
     }
 
     /**
@@ -296,36 +292,23 @@ contract Vesting is Initializable {
     }
 
     /**
-    * @notice Removes beneficiary from the structure.
-    * @param _poolIndex Index that refers to vesting pool object.
-    * @param _address Address of the beneficiary wallet.
-    */
-    function removeBeneficiary(uint _poolIndex, address _address)
-        external
-        onlyOwner
-        poolExists(_poolIndex)
-    {
-        Pool storage p = vestingPools[_poolIndex];
-        Beneficiary storage b = p.beneficiaries[_address];
-        p.lockedPoolTokens -= (b.totalTokens - b.claimedTotalTokenAmount);
-        delete p.beneficiaries[_address];
-    }
-
-    /**
     * @notice Sets new listing date and recalculates cliff and vesting end dates for all pools.
-    * @param _listingDate new listing date.
+    * @param newListingDate new listing date.
     */
-    function changeListingDate(uint _listingDate)
+    function changeListingDate(uint newListingDate)
         external
         onlyOwner
-        validListingDate(_listingDate)
+        validListingDate(newListingDate)
     {
-        listingDate = _listingDate;
+        uint oldListingDate = listingDate;
+        listingDate = newListingDate;
+
         for(uint i; i < poolCount; i++){
             Pool storage p = vestingPools[i];
-            p.cliffEndDate = _listingDate + (p.cliffInDays * 1 days);
+            p.cliffEndDate = listingDate + (p.cliffInDays * 1 days);
             p.vestingEndDate = p.cliffEndDate + (p.vestingDurationInDays * 1 days);
         }
+        emit ListingDateChanged(oldListingDate, newListingDate);
     }
 
     /**
@@ -337,7 +320,7 @@ contract Vesting is Initializable {
         external
         poolExists(_poolIndex)
         addressNotZero(msg.sender)
-        onlyWhitelisted(_poolIndex)
+        onlyBeneficiary(_poolIndex)
     {
         uint unlockedTokens = unlockedTokenAmount(_poolIndex, msg.sender);
         require(
@@ -349,10 +332,47 @@ contract Vesting is Initializable {
             "There are not enough tokens in the contract."
         );
         vestingPools[_poolIndex].beneficiaries[msg.sender].claimedTotalTokenAmount += unlockedTokens;
-        token.approve(address(this), unlockedTokens);
-        token.transferFrom(address(this), msg.sender, unlockedTokens);
 
+        token.safeIncreaseAllowance(address(this), unlockedTokens);
+        token.safeTransferFrom(address(this), msg.sender, unlockedTokens);
+        
         emit Claim(msg.sender, _poolIndex, unlockedTokens);
+    }
+
+    /**
+    * @notice Removes beneficiary from the structure.
+    * @param _poolIndex Index that refers to vesting pool object.
+    * @param _address Address of the beneficiary wallet.
+    */
+    function removeBeneficiary(uint _poolIndex, address _address)
+        external
+        onlyOwner
+        poolExists(_poolIndex)
+    {
+        Pool storage p = vestingPools[_poolIndex];
+        Beneficiary storage b = p.beneficiaries[_address];
+        uint unlockedPoolAmount = b.totalTokens - b.claimedTotalTokenAmount;
+        p.lockedPoolTokens -= unlockedPoolAmount;
+        delete p.beneficiaries[_address];
+        emit BeneficiaryRemoved(_poolIndex, _address, unlockedPoolAmount);
+    }
+
+    /**
+    * @notice Transfers tokens to the selected recipient.
+    * @param _customToken ERC20 token address.
+    * @param _address Address of the recipient.
+    * @param _tokenAmount Absolute token amount (with included decimals).
+    */
+    function withdrawContractTokens(
+        IERC20Upgradeable _customToken, 
+        address _address, 
+        uint256 _tokenAmount)
+        external 
+        onlyOwner 
+        addressNotZero(_address) 
+    {
+        _customToken.safeIncreaseAllowance(address(this), _tokenAmount);
+        _customToken.safeTransferFrom(address(this), _address, _tokenAmount);
     }
 
     /**
@@ -427,7 +447,7 @@ contract Vesting is Initializable {
     * @notice Checks how many tokens unlocked in a pool (not allocated to any user).
     * @param _poolIndex Index that refers to vesting pool object.
     */
-    function totalUnclaimedPoolTokens(uint _poolIndex) 
+    function totalUnlockedPoolTokens(uint _poolIndex) 
         external
         view
         returns (uint)
@@ -446,7 +466,6 @@ contract Vesting is Initializable {
         external
         view
         returns (
-            bool, 
             uint, 
             uint, 
             uint,
@@ -456,7 +475,6 @@ contract Vesting is Initializable {
     {
         Beneficiary storage b = vestingPools[_poolIndex].beneficiaries[_address];
         return (
-            b.isWhitelisted,
             b.totalTokens,
             b.listingTokenAmount,
             b.cliffTokenAmount,
@@ -496,7 +514,7 @@ contract Vesting is Initializable {
     function getToken() 
         external
         view
-        returns (IERC20)
+        returns (IERC20Upgradeable)
     {
         return token;
     }
@@ -525,18 +543,6 @@ contract Vesting is Initializable {
             p.vestingDurationInMonths,
             p.vestingEndDate
         );
-    }
-
-    /**
-    * @notice Return wallet address that can perform onlyOwner functions.
-    * @return address of the contract owner.
-    */ 
-    function getContractOwner() 
-        external
-        view
-        returns (address)
-    {
-        return contractOwner;
     }
 
     /**
