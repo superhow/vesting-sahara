@@ -3,7 +3,7 @@
 This contract implements token vesting and claiming for the specified list of beneficiaries.
 Vested tokens unlocked: **daily / monthly** after the cliff period ended.
 
-The aim of this project is to distribute [ERC20 SAHARA Tokens](https://polygonscan.com/token/0x8dca2831255e34ca647dba0ed103b5921fa3e975) to the list of beneficiaries.
+The aim of this project is to distribute ERC20 SAHARA Tokens to the list of beneficiaries.
 Contract can hold multiple pools, however - **the listing date for all pools is the same.**
 
 # Sahara platform
@@ -67,15 +67,9 @@ Start local blockchain (development server)
 ```bash
 npx ganache-cli
 ```
-For deployment in development:
+Then (in new window) :
 ```bash
 npm run test
-```
-or
-
-```bash
-rm-rf build
-npx truffle test
 ```
 
 ### 3. Deploy implementation + proxy admin + proxy
@@ -84,8 +78,7 @@ Start local blockchain (development server)
 ```bash
 npx ganache-cli
 ```
-then: 
-
+Then (in new window): 
 ```bash
 npm run migrate:development
 ```
@@ -94,8 +87,7 @@ npm run migrate:development
 ```bash
 npx truffle dashboard
 ```
-then:
-
+Then (in new window):
 ```bash
 npm run migrate:dashboard
 ```
