@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
 * @title Sahara Vesting Smart Contract
-* @author SUPER HOW?
+* @author SAHARA
 * @notice Vesting initializable contract for beneficiary management and unlocked token claiming.
 */
 contract Vesting is Initializable, OwnableUpgradeable {
